@@ -36,5 +36,7 @@ const dbConfig = new DBConfig({
     await dbConfig.testConnection();
     const database = new Database("couch_gaming", dbConfig);
     await database.init();
-    database.getDiff();
+    const diff_arr = database.getDiff();
+    console.log(JSON.stringify(diff_arr, null, 2));
+    database.destroy();
 })();

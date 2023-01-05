@@ -30,7 +30,6 @@ export class Database {
                 let table: Table = new Table(table_schema);
                 this.concrete_tables.push(table);
             }
-            console.log('Added tables');
         }
     }
 
@@ -38,7 +37,6 @@ export class Database {
         try {
             let db_handle = this.db_config.getDatabaseHandle('*');
             let databases = parse(await db_handle.raw('SHOW DATABASES'), 'show');
-            console.log(`Databases: ${JSON.stringify(databases)}`);
             return databases.includes(this.db_name);
         } catch (error) {
             console.log('Error: ' + JSON.stringify(error, null, 2));
@@ -49,7 +47,6 @@ export class Database {
     async getAllTables (): Promise<Array<string>> {
         try {
             let db_handle = this.db_config.getDatabaseHandle(this.db_name);
-            console.log(`Got db_handle`);
             return parse(await db_handle.raw('SHOW TABLES'), 'show');
         } catch (error) {
             console.log('Error: ' + JSON.stringify(error, null, 2));
@@ -59,10 +56,9 @@ export class Database {
 
     async getTableSchema (table_name : string): Promise<TableSchema> {
         try {
-            let schema = {name: this.db_name, columns: []};
+            let schema = {name: table_name, columns: []};
             let db_handle = this.db_config.getDatabaseHandle(this.db_name);
             let data = parse(await db_handle.raw(`DESCRIBE ${table_name}`));
-            console.log('DONE!');
             data.map(col => schema.columns.push(convertColumn(col)));
             return schema;
         } catch (error) {
@@ -84,13 +80,13 @@ export class Database {
         return table;
     }
 
-    getDiff () {
+    getDiff (): Array<Diff> {
         // returning all differences between the concrete and conceptual tables
         // individually so that we can handle the order of commit.
         let diff_arr: Array<Diff> = [];
         const arrayChecker = new ArrayChecker({
-            getId: (table) => table.name,
-            isEqualTo: (left, right) => left.name == right.name,
+            getId: (table) => table.name(),
+            isEqualTo: (left, right) => left.name() == right.name(),
             onFound: (left, right) => {
                 const schemaDiffer = new SchemaDiffer(left.schema(), right.schema());
                 diff_arr.concat(schemaDiffer.diff());
@@ -101,7 +97,7 @@ export class Database {
             onNotFound: (elem) => {
                 diff_arr.push({
                     action: "table-remove",
-                    table_schema: {...elem}
+                    table: elem.name()
                 });
             }
         });
@@ -110,19 +106,23 @@ export class Database {
             onNotFound: (elem) => {
                 diff_arr.push({
                     action: "table-add",
-                    table_schema: {...elem}
+                    table_schema: {...elem.schema()}
                 });
             }
         });
+
+        return diff_arr;
+    }
+
+    destroy() {
+        this.db_config.destroy();
     }
 }
 
 function parse (data, type?, client?) { // client = MySQL for now
-    console.log('Data: ' + JSON.stringify(data[0], null, 3));
     switch (type) {
     case 'show': // SHOW DATABASES | TABLES
         const values = [];
-        //console.log(JSON.stringify(data[0], null, 3));
         let key = Object.keys(data[0][0])[0];
         data[0].map(record => values.push(record[key]));
         return values;

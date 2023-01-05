@@ -29,9 +29,7 @@ export function convertColumn (column_schema): ColumnSchema {
             return [SchemaConsts.ENUM_COLUMN_TYPE, extractEnums(type).length];
     }
     
-    console.log('Column: ' + JSON.stringify(column_schema, null, 2));
     let typeAndLength = parseTypeAndLength(column_schema['Type']);
-    console.log('TypeAndLength: ' + typeAndLength);
     let schema: any = {
         name: column_schema['Field'],
         type: typeAndLength[0],
@@ -44,7 +42,6 @@ export function convertColumn (column_schema): ColumnSchema {
     if (schema[SchemaConsts.TYPE_FIELD] == SchemaConsts.ENUM_COLUMN_TYPE)
         schema[SchemaConsts.ENUMS_FIELD] = extractEnums(column_schema['Type']);
 
-    console.log('RETURNED');
     return schema;
 }
 

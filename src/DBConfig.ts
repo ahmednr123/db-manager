@@ -70,9 +70,9 @@ export class DBConfig {
         }
 
         let k;
-        let iter: IterableIterator<any> = this.handles.values();
-        while (k = iter.next()) {
-            k.destroy();
+        let iter: IterableIterator<any> = this.handles.keys();
+        while ((k = iter.next()) && !k.done) {
+            this.handles.get(k.value).destroy();
         }
     }
 }
