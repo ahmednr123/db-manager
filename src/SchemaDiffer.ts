@@ -6,10 +6,11 @@ export interface Diff {
     column?: string,
     property?: string,
     action: string,
-    value?: string,
-    old_value?: string,
-    new_value?: string,
-    handle: (knex: any) => void
+    value?: string | number | Array<string | number> | {table: string, column: string},
+    old_value?: string | number | Array<string | number> | {table: string, column: string},
+    new_value?: string | number | Array<string | number> | {table: string, column: string},
+    column_schema?: ColumnSchema,
+    table_schema?: TableSchema
 }
 
 export default class SchemaDiffer {
@@ -35,11 +36,25 @@ export default class SchemaDiffer {
         });
     
         arrayChecker.check(this.first_table.columns, this.second_table.columns, {
-            onNotFound: elem => console.log(`Column to be removed: ${elem.name}`),
+            onNotFound: elem => { 
+                console.log(`Column to be removed: ${elem.name}`);
+                this.diff_arr.push({
+                    table: this.first_table.name,
+                    action: "column-remove",
+                    column: elem.name
+                });
+            },
         });
     
         arrayChecker.check(this.second_table.columns, this.first_table.columns, {
-            onNotFound: elem => console.log(`Column to be added: ${elem.name}`),
+            onNotFound: elem => { 
+                console.log(`Column to be added: ${elem.name}`);
+                this.diff_arr.push({
+                    table: this.first_table.name,
+                    action: "column-add",
+                    column_schema: {...elem}
+                });
+            },
         });
 
         return this.diff_arr;
@@ -57,6 +72,13 @@ export default class SchemaDiffer {
             if (!second[key]) { // Checking if property exists or not in the second schema
                 const action = switch_cols ? "added" : "removed";
                 console.log(`Property to be ${action}: ${key} = ${first[key]}`);
+                this.diff_arr.push({
+                    table: this.first_table.name,
+                    column: first.name,
+                    action: switch_cols? "property-add": "property-remove",
+                    property: key,
+                    value: first[key]
+                });
                 continue;
             }
 
@@ -66,27 +88,60 @@ export default class SchemaDiffer {
                     isEqualTo: (left, right) => left == right
                 });
                 arrayChecker.check(first[key], second[key], {
-                    onNotFound: (elem) => console.log(`Contraint to be removed: ${elem}`)
+                    onNotFound: (elem) => {
+                        console.log(`Contraint to be removed: ${elem}`);
+                        this.diff_arr.push({
+                            table: this.first_table.name,
+                            column: first.name,
+                            action: "constraint-remove",
+                            property: key,
+                            value: elem
+                        });
+                    }
                 });
                 arrayChecker.check(second[key], first[key], {
-                    onNotFound: (elem) => console.log(`Contraint to be added: ${elem}`)
+                    onNotFound: (elem) => {
+                        console.log(`Contraint to be added: ${elem}`);
+                        this.diff_arr.push({
+                            table: this.first_table.name,
+                            column: first.name,
+                            action: "constraint-add",
+                            property: key,
+                            value: elem
+                        });
+                    }
                 });
                 continue;
             }
 
             if (key == "foreign") {
                 //For either change the constraint has to be removed and added again.
-                if (first[key].table != second[key].table) {
-                    console.log(`Foreign table to be updated: ${first[key].table} => ${second[key].table}`);
-                }
-                if (first[key].column != second[key].column) {
-                    console.log(`Foreign column to be updated: ${first[key].table} => ${second[key].table}`);
+                if (first[key].table != second[key].table 
+                    || first[key].column != second[key].column) 
+                {
+                    console.log(`Foreign constraint to be updated: ${JSON.stringify(first[key])} => ${JSON.stringify(second[key])}`);
+                    this.diff_arr.push({
+                        table: this.first_table.name,
+                        column: first.name,
+                        action: "foreign-udpate",
+                        property: key,
+                        old_value: {...first[key]},
+                        new_value: {...second[key]}
+                    });
                 }
                 continue;
             }
 
             if (first[key] != second[key]) {
                 console.log(`Property to be updated: ${key} = ${first[key]} => ${second[key]}`);
+                this.diff_arr.push({
+                    table: this.first_table.name,
+                    column: first.name,
+                    action: "value-udpate",
+                    property: key,
+                    old_value: first[key],
+                    new_value: second[key]
+                });
                 continue;
             }
         }
