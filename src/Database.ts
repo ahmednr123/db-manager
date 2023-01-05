@@ -1,6 +1,8 @@
 import { convertColumn } from "./Converter";
 import { DBConfig } from "./DBConfig";
-import { ColumnSchema, Table, TableSchema } from "./Table";
+import SchemaDiffer, {Diff} from "./SchemaDiffer";
+import { Table, TableSchema } from "./Table";
+import { ArrayChecker } from "./Util";
 
 export class Database {
     db_name: string;
@@ -82,13 +84,36 @@ export class Database {
         return table;
     }
 
-    // need to define a proper diff schema
     getDiff () {
-        // return all differences between the concrete and conceptual tables
+        // returning all differences between the concrete and conceptual tables
         // individually so that we can handle the order of commit.
-        for (let table of this.concrete_tables) {
-            console.log(JSON.stringify(table.schema(), null, 3));
-        }
+        let diff_arr: Array<Diff> = [];
+        const arrayChecker = new ArrayChecker({
+            getId: (table) => table.name,
+            isEqualTo: (left, right) => left.name == right.name,
+            onFound: (left, right) => {
+                const schemaDiffer = new SchemaDiffer(left.schema(), right.schema());
+                diff_arr.concat(schemaDiffer.diff());
+            }
+        });
+
+        arrayChecker.check(this.concrete_tables, this.conceptual_tables, {
+            onNotFound: (elem) => {
+                diff_arr.push({
+                    action: "table-remove",
+                    table_schema: {...elem}
+                });
+            }
+        });
+
+        arrayChecker.check(this.conceptual_tables, this.concrete_tables, {
+            onNotFound: (elem) => {
+                diff_arr.push({
+                    action: "table-add",
+                    table_schema: {...elem}
+                });
+            }
+        });
     }
 }
 
