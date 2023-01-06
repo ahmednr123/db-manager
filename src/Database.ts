@@ -12,13 +12,15 @@ export class Database {
     concrete_tables: Array<Table>;
 
     db_config: DBConfig;
+    is_root: boolean; // Root databases don't save any configuration.
 
-    constructor (db_name: string, db_config: DBConfig) {
+    constructor (db_name: string, db_config: DBConfig, is_root?: boolean) {
         this.db_name = db_name;
         this.db_config = db_config;
         this.conceptual_tables = new Array();
         this.concrete_tables = new Array();
         this.is_concrete = false;
+        this.is_root = is_root || false;
     }
 
     async init () {
@@ -83,6 +85,7 @@ export class Database {
     getDiff (): Array<Diff> {
         // returning all differences between the concrete and conceptual tables
         // individually so that we can handle the order of commit.
+
         let diff_arr: Array<Diff> = [];
         const arrayChecker = new ArrayChecker({
             getId: (table) => table.name(),

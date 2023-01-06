@@ -2,6 +2,7 @@ export enum Constraints {
     UNIQUE_KEY,
     PRIMARY_KEY,
     NOT_NULL,
+    AUTO_INCREMENT
 }
 
 export interface ColumnSchema {
