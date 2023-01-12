@@ -1,6 +1,5 @@
 import { ColumnSchema } from "./Table";
 import { DataTypes } from "./datatypes";
-import { json } from "stream/consumers";
 
 export function convertColumn (mysql_col_schema): ColumnSchema {
     let type = DataTypes.find(type => type.matchDesc(mysql_col_schema['Type']));
