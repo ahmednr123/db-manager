@@ -23,7 +23,7 @@ export interface IDataType {
     alter: (table: Knex.AlterTableBuilder, schema: ColumnSchema) => void
 }
 
-export const data_types: IDataType[] = [
+export const DataTypes: IDataType[] = [
     Enum,
     Integer,
     BigInteger,

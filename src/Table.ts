@@ -1,3 +1,5 @@
+import { IDataType } from "./datatypes";
+
 export enum Constraints {
     UNIQUE_KEY,
     PRIMARY_KEY,
@@ -7,11 +9,13 @@ export enum Constraints {
 
 export interface ColumnSchema {
     name: string;
-    type: string;
-    size?: number;
+    type: IDataType;
+    size?: number; //For now the only reason this makes sense is for string.
+    //adding a size to varchar doesn't really do much but provide limit check.
     constraints?: Array<Constraints>;
     enums?: Array<string | number>;
     foreign?: {table: string, column: string};
+    default?: any;
 }
 
 export interface TableSchema {

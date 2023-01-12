@@ -3,6 +3,10 @@ import { json } from "stream/consumers";
 import { IDataType } from ".";
 import { ColumnSchema, TableSchema } from "../Table";
 
+/**
+ * The extract methods are done in a hurry, sorry about that,
+ * building a working prototype ASAP is more important
+ */
 const extractEnums     = (type) : Array<any> => {
     // This method completely ignores comma and close bracket inside the string.
     let arr: any = [];

@@ -2,6 +2,10 @@ import { Knex } from "knex";
 import { IDataType } from ".";
 import { ColumnSchema, TableSchema } from "../Table";
 
+/**
+ * The extract methods are done in a hurry, sorry about that,
+ * building a working prototype ASAP is more important
+ */
 const extractStrLength = (type) : string => type.split('(')[1].split(')')[0];
 
 function matchDesc (
