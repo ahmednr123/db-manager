@@ -1,3 +1,4 @@
+import { DiffAction } from "./DiffCommit";
 import { ColumnSchema, Table, TableSchema } from "./Table";
 import { ArrayChecker } from "./Util";
 
@@ -5,10 +6,10 @@ export interface Diff {
     table?: string,
     column?: string,
     property?: string,
-    action: string,
-    value?: string | number | Array<string | number> | {table: string, column: string},
-    old_value?: string | number | Array<string | number> | {table: string, column: string},
-    new_value?: string | number | Array<string | number> | {table: string, column: string},
+    action: DiffAction,
+    value?: {table: string, column: string} | Array<string | number> | string | number,
+    old_value?: {table: string, column: string} | Array<string | number> | string | number,
+    new_value?: {table: string, column: string} | Array<string | number> | string | number,
     column_schema?: ColumnSchema,
     table_schema?: TableSchema
 }
@@ -40,7 +41,7 @@ export default class SchemaDiffer {
                 console.log(`Column to be removed: ${elem.name}`);
                 this.diff_arr.push({
                     table: this.first_table.name,
-                    action: "column-remove",
+                    action: DiffAction.COLUMN_REMOVE,
                     column: elem.name
                 });
             },
@@ -51,7 +52,7 @@ export default class SchemaDiffer {
                 console.log(`Column to be added: ${elem.name}`);
                 this.diff_arr.push({
                     table: this.first_table.name,
-                    action: "column-add",
+                    action: DiffAction.COLUMN_ADD,
                     column_schema: {...elem}
                 });
             },
@@ -75,7 +76,7 @@ export default class SchemaDiffer {
                 this.diff_arr.push({
                     table: this.first_table.name,
                     column: first.name,
-                    action: switch_cols? "property-add": "property-remove",
+                    action: switch_cols? DiffAction.PROPERTY_ADD: DiffAction.PROPERTY_REMOVE,
                     property: key,
                     value: first[key]
                 });
@@ -93,7 +94,7 @@ export default class SchemaDiffer {
                         this.diff_arr.push({
                             table: this.first_table.name,
                             column: first.name,
-                            action: "constraint-remove",
+                            action: DiffAction.CONSTRAINT_REMOVE,
                             property: key,
                             value: elem
                         });
@@ -105,7 +106,7 @@ export default class SchemaDiffer {
                         this.diff_arr.push({
                             table: this.first_table.name,
                             column: first.name,
-                            action: "constraint-add",
+                            action: DiffAction.CONSTRAINT_ADD,
                             property: key,
                             value: elem
                         });
@@ -123,7 +124,7 @@ export default class SchemaDiffer {
                     this.diff_arr.push({
                         table: this.first_table.name,
                         column: first.name,
-                        action: "foreign-udpate",
+                        action: DiffAction.FOREIGN_UPDATE,
                         property: key,
                         old_value: {...first[key]},
                         new_value: {...second[key]}
@@ -137,7 +138,7 @@ export default class SchemaDiffer {
                 this.diff_arr.push({
                     table: this.first_table.name,
                     column: first.name,
-                    action: "value-udpate",
+                    action: DiffAction.VALUE_UPDATE,
                     property: key,
                     old_value: first[key],
                     new_value: second[key]
