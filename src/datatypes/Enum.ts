@@ -20,6 +20,12 @@ const extractEnums     = (type) : Array<any> => {
     return arr;
 }
 
+function matchType (
+    type: string
+): boolean {
+    return type == 'enum';
+}
+
 function matchDesc (
     mysql_type: string
 ): boolean {
@@ -48,7 +54,7 @@ function alter (
 }
 
 const type: IDataType = {
-    matchDesc, parseDesc, create, alter
+    matchType, matchDesc, parseDesc, create, alter
 };
 
 export default type;

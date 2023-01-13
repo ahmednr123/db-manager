@@ -1,3 +1,6 @@
+import { TableSchema } from "./Table";
+import { DataTypes } from "./datatypes";
+
 interface Callbacks {
     getId?: (elem: any) => any, 
     isEqualTo?: (left: any, right: any) => boolean, 
@@ -41,4 +44,12 @@ export class ArrayChecker {
             _onFound(f_elem, s_elem);
         }
     }
+}
+
+export function parseStringToTableSchema (schema_str: string): TableSchema {
+    let schema = JSON.parse(schema_str);
+    for (let column of schema.columns) {
+        column.type = DataTypes.find(type => type.matchType(column.type));
+    }
+    return schema as TableSchema;
 }

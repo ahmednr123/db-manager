@@ -8,6 +8,12 @@ import { ColumnSchema, TableSchema } from "../Table";
  */
 const extractStrLength = (type) : string => type.split('(')[1].split(')')[0];
 
+function matchType (
+    type: string
+): boolean {
+    return type == 'string';
+}
+
 function matchDesc (
     mysql_type: string
 ): boolean {
@@ -25,18 +31,18 @@ function create (
     table: Knex.CreateTableBuilder, 
     schema: ColumnSchema
 ) {
-
+    table.string(schema.name, schema.size);
 }
 
 function alter (
     table: Knex.AlterTableBuilder, 
     schema: ColumnSchema
 ) {
-
+    table.string(schema.name);
 }
 
 const type: IDataType = {
-    matchDesc, parseDesc, create, alter
+    matchType, matchDesc, parseDesc, create, alter
 };
 
 export default type;

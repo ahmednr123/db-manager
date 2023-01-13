@@ -2,6 +2,12 @@ import { Knex } from "knex";
 import { IDataType } from ".";
 import { ColumnSchema, TableSchema } from "../Table";
 
+function matchType (
+    type: string
+): boolean {
+    return type == 'big_integer';
+}
+
 function matchDesc (
     mysql_type: string
 ): boolean {
@@ -32,7 +38,7 @@ function alter (
 }
 
 const type: IDataType = {
-    matchDesc, parseDesc, create, alter
+    matchType, matchDesc, parseDesc, create, alter
 };
 
 export default type;
