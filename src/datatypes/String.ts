@@ -42,6 +42,7 @@ function alter (
 }
 
 const type: IDataType = {
+    getMysqlType: (json_schema: ColumnSchema) => `varchar(${json_schema.size || 255})`,
     matchType, matchDesc, parseDesc, create, alter
 };
 

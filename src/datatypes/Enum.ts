@@ -54,6 +54,7 @@ function alter (
 }
 
 const type: IDataType = {
+    getMysqlType: (json_schema: ColumnSchema) => `enum(${json_schema.enums.map(e => `'${e}'`).join(',')})`,
     matchType, matchDesc, parseDesc, create, alter
 };
 

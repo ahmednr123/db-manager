@@ -36,6 +36,7 @@ function alter (
 }
 
 const type: IDataType = {
+    getMysqlType: () => `int unsigned`,
     matchType, matchDesc, parseDesc, create, alter
 };
 

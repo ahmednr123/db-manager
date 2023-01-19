@@ -16,6 +16,7 @@ import String from "./BigInteger";
 */
 
 export interface IDataType {
+    getMysqlType: (json_schema: ColumnSchema) => string,
     matchType: (type: string) => boolean,
     
     matchDesc: (mysql_type: string) => boolean,

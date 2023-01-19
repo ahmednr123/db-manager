@@ -38,6 +38,7 @@ function alter (
 }
 
 const type: IDataType = {
+    getMysqlType: (json_schema) => "bigint unsigned",
     matchType, matchDesc, parseDesc, create, alter
 };
 
