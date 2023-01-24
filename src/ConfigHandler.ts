@@ -8,7 +8,7 @@ import { Constraints, TableSchema } from "./Table";
  * tables -> {id, database, table_name, table_schema}
  */
 
-export class ConfigHandler {
+/*export class ConfigHandler {
     database: Database;
 
     constructor (db_config: DBConfig) {
@@ -95,4 +95,4 @@ export class ConfigHandler {
     async exportConfig () {
         
     }
-}
+}*/

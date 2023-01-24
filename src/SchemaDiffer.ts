@@ -1,48 +1,51 @@
-import { DiffActions, IDiffAction } from "./diff_actions";
-import { ColumnSchema, Table, TableSchema } from "./Table";
+import { CommitAction, CommitType } from "./diff_action";
+import { ColumnSchema, TableSchema } from "./Table";
 import { ArrayChecker } from "./Util";
 
 export interface Diff {
-    table?: string,
-    column?: string,
-    property?: string,
-    action: IDiffAction,
-    value?: {table: string, column: string} | Array<string | number> | string | number,
-    old_value?: {table: string, column: string} | Array<string | number> | string | number,
-    new_value?: {table: string, column: string} | Array<string | number> | string | number,
-    column_schema?: ColumnSchema,
-    table_schema?: TableSchema
+    type: CommitType,
+    action: CommitAction,
+    table_name: string,
+    column_name?: string,
+    old?: TableSchema | ColumnSchema | Array<string> | {table: string, column: string} | {property: string, value: any},
+    new?: TableSchema | ColumnSchema | Array<string> | {table: string, column: string} | {property: string, value: any}
 }
 
 export default class SchemaDiffer {
-    first_table: TableSchema;
-    second_table: TableSchema;
+    // FIRST: Coceptual data
+    // SECOND: Concrete data
+    private first_table: TableSchema;
+    private second_table: TableSchema;
 
-    diff_arr: Array<Diff>; 
+    private diff_arr: Array<Diff>;
 
     constructor (first_table: TableSchema, second_table: TableSchema) {
         this.first_table = first_table;
         this.second_table = second_table;
     }
 
-    diff() : Array<Diff> {
+    public diff() : Array<Diff> {
+        this.diff_arr = [];
+
         if (this.first_table.name != this.second_table.name) {
             console.log(`Table name mismatch: ${this.first_table.name} != ${this.second_table.name}`);
         }
     
         const arrayChecker = new ArrayChecker({
-            getId: elem => elem.__id,
-            isEqualTo: (left, right) => left.__id == right.__id,
-            onFound: (left, right) => this.columnDiff(left, right),
+            getId: elem => elem.name,
+            isEqualTo: (left, right) => left.name == right.name,
+            onFound: (left, right) => this.columnDiffer(left, right),
         });
     
         arrayChecker.check(this.first_table.columns, this.second_table.columns, {
             onNotFound: elem => { 
                 console.log(`Column to be removed: ${elem.name}`);
                 this.diff_arr.push({
-                    table: this.first_table.name,
-                    action: DiffActions.ColumnRemove,
-                    column: elem.name
+                    type: CommitType.COLUMN,
+                    action: CommitAction.REMOVE,
+                    table_name: this.first_table.name,
+                    column_name: elem.name,
+                    old: {...elem} as ColumnSchema
                 });
             },
         });
@@ -51,9 +54,11 @@ export default class SchemaDiffer {
             onNotFound: elem => { 
                 console.log(`Column to be added: ${elem.name}`);
                 this.diff_arr.push({
-                    table: this.first_table.name,
-                    action: DiffActions.ColumnAdd,
-                    column_schema: {...elem}
+                    type: CommitType.COLUMN,
+                    action: CommitAction.ADD,
+                    table_name: this.first_table.name,
+                    column_name: elem.name,
+                    new: {...elem} as ColumnSchema
                 });
             },
         });
@@ -61,96 +66,179 @@ export default class SchemaDiffer {
         return this.diff_arr;
     }
 
-    columnDiffer(first_col, second_col, visited_props, switch_cols) {
-        const first = !switch_cols ? first_col : second_col;
-        const second = !switch_cols ? second_col : first_col;
-        for (let key in first) {
-            if (visited_props[key]) {
-                continue;
-            }
-            visited_props[key] = 1;
+    private getArrayDiff (first, second) {
+        let add = [];
+        let remove = [];
 
-            if (!second[key]) { // Checking if property exists or not in the second schema
-                const action = switch_cols ? "added" : "removed";
-                console.log(`Property to be ${action}: ${key} = ${first[key]}`);
-                this.diff_arr.push({
-                    table: this.first_table.name,
-                    column: first.name,
-                    action: switch_cols? DiffActions.PropertyAdd: DiffActions.PropertyRemove,
-                    property: key,
-                    value: first[key]
-                });
-                continue;
-            }
+        for (let constraint of first)
+            if (!second.includes(constraint))
+                add.push(constraint);
 
-            if (key == "constraints") {
-                const arrayChecker = new ArrayChecker({
-                    getId: elem => elem,
-                    isEqualTo: (left, right) => left == right
-                });
-                arrayChecker.check(first[key], second[key], {
-                    onNotFound: (elem) => {
-                        console.log(`Contraint to be removed: ${elem}`);
-                        this.diff_arr.push({
-                            table: this.first_table.name,
-                            column: first.name,
-                            action: DiffActions.ConstraintRemove,
-                            property: key,
-                            value: elem
-                        });
-                    }
-                });
-                arrayChecker.check(second[key], first[key], {
-                    onNotFound: (elem) => {
-                        console.log(`Contraint to be added: ${elem}`);
-                        this.diff_arr.push({
-                            table: this.first_table.name,
-                            column: first.name,
-                            action: DiffActions.ConstraintAdd,
-                            property: key,
-                            value: elem
-                        });
-                    }
-                });
-                continue;
-            }
+        for (let constraint of second)
+            if (!first.includes(constraint))
+                remove.push(constraint);
 
-            if (key == "foreign") {
-                //For either change the constraint has to be removed and added again.
-                if (first[key].table != second[key].table 
-                    || first[key].column != second[key].column) 
-                {
-                    console.log(`Foreign constraint to be updated: ${JSON.stringify(first[key])} => ${JSON.stringify(second[key])}`);
-                    this.diff_arr.push({
-                        table: this.first_table.name,
-                        column: first.name,
-                        action: DiffActions.ForeignUpdate,
-                        property: key,
-                        old_value: {...first[key]},
-                        new_value: {...second[key]}
-                    });
-                }
-                continue;
-            }
+        return {add, remove};
+    }
 
-            if (first[key] != second[key]) {
-                console.log(`Property to be updated: ${key} = ${first[key]} => ${second[key]}`);
-                this.diff_arr.push({
-                    table: this.first_table.name,
-                    column: first.name,
-                    action: DiffActions.ValueUpdate,
-                    property: key,
-                    old_value: first[key],
-                    new_value: second[key]
-                });
-                continue;
+    private isTypeOptsUpdated (first_opts, second_opts, opts) {
+        let ret = false;
+        for (let opt of opts) {
+            if (first_opts[opt] 
+                && second_opts[opt] 
+                && first_opts[opts] == second_opts[opts]) 
+            {
+                ret = ret || false;
             }
+        }
+        return ret;
+    }
+
+    private isTypeUpdated (first, second) {
+        // Field's required a database change
+        // String: limit
+        // Number: size, type, signed
+        // Enum: enums
+        // DateTime: format
+        // Boolean
+        let first_opts = first['options'];
+        let second_opts = second['options'];
+        switch (first['name']) {
+            case 'string':
+                return this.isTypeOptsUpdated(first_opts, second_opts, ['limit']);
+            case 'number':
+                return this.isTypeOptsUpdated(first_opts, second_opts, ['size', 'type', 'signed']);
+            case 'datetime':
+                return this.isTypeOptsUpdated(first_opts, second_opts, ['format']);
+            case 'enum':
+                let obj = this.getArrayDiff(first_opts['enums'], second_opts['enums']);
+                return obj.add.length > 0 || obj.remove.length > 0;
         }
     }
 
-    columnDiff(first_col: ColumnSchema, second_col: ColumnSchema) {
-        let visited_props = {};
-        this.columnDiffer(first_col, second_col, visited_props, false);
-        this.columnDiffer(first_col, second_col, visited_props, true);
+    private columnDiffer (first_col, second_col) {
+        this.propertyDiff (first_col, second_col, 'type', () => {
+            let isTypeUpdated = this.isTypeUpdated(first_col['type'], second_col['type']);
+            if (isTypeUpdated) {
+                this.diff_arr.push({
+                    type: CommitType.PROPERTY,
+                    action: CommitAction.UPDATE,
+                    table_name: this.first_table.name,
+                    column_name: first_col.name,
+                    old: {
+                        property: 'type',
+                        value: second_col['type']
+                    },
+                    new: {
+                        property: 'type',
+                        value: first_col['type']
+                    }
+                });
+            }
+        });
+
+        this.propertyDiff (first_col, second_col, 'constraints', () => {
+            let obj = this.getArrayDiff(first_col['constraints'], second_col['constraints']);
+            if (obj.add.length > 0 || obj.remove.length > 0) {
+                this.diff_arr.push({
+                    type: CommitType.CONSTRAINTS,
+                    action: CommitAction.UPDATE,
+                    table_name: this.first_table.name,
+                    column_name: first_col.name,
+                    old: obj.remove,
+                    new: obj.add
+                });
+            }
+        });
+
+        this.propertyDiff (first_col, second_col, 'foreign', () => {
+            let is_foreign_updated = first_col['foreign'].table != second_col['foreign'].table
+                || first_col['foreign'].column != second_col['foreign'].column;
+            if (is_foreign_updated) {
+                this.diff_arr.push({
+                    type: CommitType.FOREIGN,
+                    action: CommitAction.UPDATE,
+                    table_name: this.first_table.name,
+                    column_name: first_col.name,
+                    old: second_col['foreign'],
+                    new: first_col['foreign']
+                });
+            }
+        });
+
+        this.propertyDiff (first_col, second_col, 'default', () => {
+            if (first_col['default'] != second_col['default']) {
+                this.diff_arr.push({
+                    type: CommitType.PROPERTY,
+                    action: CommitAction.UPDATE,
+                    table_name: this.first_table.name,
+                    column_name: first_col.name,
+                    old: {
+                        property: 'default',
+                        value: second_col['default']
+                    },
+                    new: {
+                        property: 'default',
+                        value: first_col['default']
+                    }
+                });
+            }
+        });
+    }
+
+    private propertyDiff (first_col, second_col, property, onFound) {
+        if (first_col[property] && second_col[property]) {
+            onFound();
+        }
+
+        if (!first_col[property] && second_col[property]) {
+            console.log(`Property: "${property}" to be removed`);
+            let type = CommitType.PROPERTY;
+            let value = {
+                property,
+                value: second_col[property]
+            };
+
+            if (property == 'foreign') {
+                type = CommitType.FOREIGN;
+                value = {...second_col[property]};
+            } else if (property == 'constraints') {
+                type = CommitType.CONSTRAINTS;
+                value = second_col[property].concat([]);
+            }
+
+            this.diff_arr.push({
+                type,
+                action: CommitAction.REMOVE,
+                table_name: this.first_table.name,
+                column_name: first_col.name,
+                old: value
+            });
+        }
+        
+        if (!second_col[property] && first_col[property]) {
+            console.log(`Property: "${property}" to be added`);
+            let type = CommitType.PROPERTY;
+            let value = {
+                property,
+                value: second_col[property]
+            };
+
+            if (property == 'foreign') {
+                type = CommitType.FOREIGN;
+                value = {...first_col[property]};
+            } else if (property == 'constraints') {
+                type = CommitType.CONSTRAINTS;
+                value = first_col[property].concat([]);
+            }
+
+            this.diff_arr.push({
+                type,
+                action: CommitAction.ADD,
+                table_name: this.first_table.name,
+                column_name: first_col.name,
+                new: value
+            });
+        }
     }
 }

@@ -1,14 +1,15 @@
 import { ColumnSchema } from "./Table";
-import { DataTypes } from "./datatypes";
+import TypeProcedures from "./type_procedures";
 
 export function convertColumn (mysql_col_schema): ColumnSchema {
-    let type = DataTypes.find(type => type.matchDesc(mysql_col_schema['Type']));
+    let procedure = TypeProcedures.matchTypeProcedure(mysql_col_schema['Type']);
     let json_col_schema: ColumnSchema = {
         name: mysql_col_schema['Field'],
-        type
+        type: {
+            name: procedure.getString(),
+            options: procedure.parseMySQLDesc(mysql_col_schema)
+        }
     };
-
-    type.parseDesc(json_col_schema, mysql_col_schema);
 
     // Common parsing
     if(mysql_col_schema['Default'])

@@ -1,19 +1,14 @@
-import { IDataType } from "./datatypes";
-
 export enum Constraints {
-    UNIQUE_KEY,
-    PRIMARY_KEY,
-    NOT_NULL,
-    AUTO_INCREMENT
+    UNIQUE_KEY = "unique_key",
+    PRIMARY_KEY = "primary_key",
+    NOT_NULL = "not_null",
+    AUTO_INCREMENT = "auto_increment"
 }
 
 export interface ColumnSchema {
     name: string;
-    type: IDataType;
-    size?: number; //For now the only reason this makes sense is for string.
-    //adding a size to varchar doesn't really do much but provide limit check.
-    constraints?: Array<Constraints>;
-    enums?: Array<string | number>;
+    type: {name: string, options: any};
+    constraints?: Array<Constraints>; // Maybe make it a array of string for now, things r taking too long
     foreign?: {table: string, column: string};
     default?: any;
 }
@@ -34,7 +29,7 @@ export class Table {
         return this.table_schema.name;
     }
 
-    schema () {
+    _schema () {
         return this.table_schema;
     }
 }

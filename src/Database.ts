@@ -1,6 +1,6 @@
 import { convertColumn } from "./Converter";
 import { DBConfig } from "./DBConfig";
-import { DiffAction } from "./DiffCommit";
+import { CommitAction, CommitType } from "./diff_action";
 import SchemaDiffer, {Diff} from "./SchemaDiffer";
 import { Table, TableSchema } from "./Table";
 import { ArrayChecker } from "./Util";
@@ -100,8 +100,10 @@ export class Database {
         arrayChecker.check(this.concrete_tables, this.conceptual_tables, {
             onNotFound: (elem) => {
                 diff_arr.push({
-                    action: DiffAction.TABLE_REMOVE,
-                    table: elem.name()
+                    type: CommitType.TABLE,
+                    action: CommitAction.REMOVE,
+                    table_name: elem.name(),
+                    old: {...elem.schema()}
                 });
             }
         });
@@ -109,9 +111,10 @@ export class Database {
         arrayChecker.check(this.conceptual_tables, this.concrete_tables, {
             onNotFound: (elem) => {
                 diff_arr.push({
-                    action: DiffAction.TABLE_ADD,
-                    table: elem.name(),
-                    table_schema: {...elem.schema()}
+                    type: CommitType.TABLE,
+                    action: CommitAction.ADD,
+                    table_name: elem.name(),
+                    new: {...elem.schema()}
                 });
             }
         });
