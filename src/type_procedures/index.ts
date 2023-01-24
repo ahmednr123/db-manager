@@ -3,7 +3,6 @@ import { ColumnSchema } from "../Table";
 
 import String from "./String";
 import Number from "./Number";
-import Boolean from "./Boolean";
 import Enum from "./Enum";
 import DateTime from "./DateTime";
 
@@ -25,9 +24,8 @@ export interface TypeProcedure {
 const TypeProcedures: Array<any> = [
     String,
     Number,
-    Boolean,
-    Enum,
-    DateTime
+    DateTime,
+    Enum
 ]
 
 export default {

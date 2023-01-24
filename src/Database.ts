@@ -1,4 +1,5 @@
-import { convertColumn } from "./Converter";
+import { Knex } from "knex";
+import { convertColumn, getMySQLConstraints } from "./Converter";
 import { DBConfig } from "./DBConfig";
 import { CommitAction, CommitType } from "./diff_action";
 import SchemaDiffer, {Diff} from "./SchemaDiffer";
@@ -62,7 +63,8 @@ export class Database {
             let schema = {name: table_name, columns: []};
             let db_handle = this.db_config.getDatabaseHandle(this.db_name);
             let data = parse(await db_handle.raw(`DESCRIBE ${table_name}`));
-            data.map(col => schema.columns.push(convertColumn(col)));
+            let constraints = await getMySQLConstraints(db_handle as Knex, this.db_name, table_name);
+            data.map(col => schema.columns.push(convertColumn(constraints, col)));
             return schema;
         } catch (error) {
             console.log('Error: ' + JSON.stringify(error, null, 2));

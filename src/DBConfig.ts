@@ -1,4 +1,4 @@
-import Knex from "knex";
+import Knex, { knex } from "knex";
 import { TableSchema } from "./Table";
 
 export class DBConfig {

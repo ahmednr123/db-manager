@@ -8,7 +8,7 @@ export enum Constraints {
 export interface ColumnSchema {
     name: string;
     type: {name: string, options: any};
-    constraints?: Array<Constraints>; // Maybe make it a array of string for now, things r taking too long
+    constraints: Array<Constraints>; // Maybe make it a array of string for now, things r taking too long
     foreign?: {table: string, column: string};
     default?: any;
 }
