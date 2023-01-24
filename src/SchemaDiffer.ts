@@ -1,4 +1,4 @@
-import { CommitAction, CommitType } from "./diff_action";
+import { CommitAction, CommitType } from "./commit_procedures";
 import { ColumnSchema, TableSchema } from "./Table";
 import { ArrayChecker } from "./Util";
 

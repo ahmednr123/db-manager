@@ -1,7 +1,7 @@
 import { Knex } from "knex";
 import { convertColumn, getMySQLConstraints } from "./Converter";
 import { DBConfig } from "./DBConfig";
-import { CommitAction, CommitType } from "./diff_action";
+import { CommitAction, CommitType } from "./commit_procedures";
 import SchemaDiffer, {Diff} from "./SchemaDiffer";
 import { Table, TableSchema } from "./Table";
 import { ArrayChecker } from "./Util";

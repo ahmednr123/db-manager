@@ -2,9 +2,12 @@ import { Knex } from "knex";
 import { TypeProcedure } from ".";
 import { ColumnSchema } from "../Table";
 
-function getProcedure (options): TypeProcedure {
+function getProcedure (name, options, default_val): TypeProcedure {
 const obj = {
+    name,
     options,
+    default: default_val,
+
     getString: () => `string`,
     getMySQLType: () => `varchar(${options.limit})`,
     matchMySQLDesc: (mysql_type: string) => mysql_type.includes('varchar'),

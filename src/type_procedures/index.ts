@@ -7,7 +7,9 @@ import Enum from "./Enum";
 import DateTime from "./DateTime";
 
 export interface TypeProcedure {
+    name: string,
     options: any,
+    default: string | number,
 
     getString: () => string,
     getMySQLType: () => string,
@@ -33,9 +35,9 @@ export default {
         const procedure = TypeProcedures.find((procedure) => procedure.matchMySQLDesc(mysql_type));
         return procedure.getProcedure(null);
     },
-    getTypeProcedure: (type_string: string, options: any) => {
+    getTypeProcedure: (type_string: string, field: string, options: any, default_val: any) => {
         const procedure = TypeProcedures.find((procedure) => procedure.type == type_string);
-        return procedure.getProcedure(options);
+        return procedure.getProcedure(field, options, default_val);
     }
 }
 
