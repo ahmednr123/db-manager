@@ -17,9 +17,9 @@ export enum CommitAction {
 export interface CommitActionProcedure {
     type: CommitType,
 
-    add:    (knex_table_handle, diff: Diff) => void,
-    remove: (knex_table_handle, diff: Diff) => void,
-    update: (knex_table_handle, diff: Diff) => void
+    add:    (knex_table_handle, diff: Diff, raw_cmds) => void,
+    remove: (knex_table_handle, diff: Diff, raw_cmds) => void,
+    update: (knex_table_handle, diff: Diff, raw_cmds) => void
 }
 
 const CommitProcedures: Array<CommitActionProcedure> = [

@@ -18,8 +18,8 @@ export interface TypeProcedure {
     parseMySQLDesc: (mysql_schema: any) => {name: string, options?: any},
 
     knex_handle: {
-        create: (table: Knex.CreateTableBuilder, field: string) => void,
-        alter:  (table: Knex.AlterTableBuilder,  field: string) => void
+        create: (table: Knex.CreateTableBuilder, field: string) => Knex.ColumnBuilder,
+        alter:  (table: Knex.AlterTableBuilder,  field: string) => Knex.ColumnBuilder
     }
 }
 
@@ -35,7 +35,7 @@ export default {
         const procedure = TypeProcedures.find((procedure) => procedure.matchMySQLDesc(mysql_type));
         return procedure.getProcedure(null);
     },
-    getTypeProcedure: (type_string: string, field: string, options: any, default_val: any) => {
+    getTypeProcedure: (type_string: string, field: string, options: any, default_val?: any) => {
         const procedure = TypeProcedures.find((procedure) => procedure.type == type_string);
         return procedure.getProcedure(field, options, default_val);
     }

@@ -1,15 +1,15 @@
 import { CommitActionProcedure, CommitType } from ".";
 import { Diff } from "../SchemaDiffer";
 
-const add = (table, diff: Diff) => {
+const add = (table, diff: Diff, raw_cmds) => {
     throw new Error('Table commit procedure is not ready for usage');
 }
 
-const remove = (table, diff: Diff) => {
+const remove = (table, diff: Diff, raw_cmds) => {
     throw new Error('Table commit procedure is not ready for usage');
 }
 
-const update = (table, diff: Diff) => {
+const update = (table, diff: Diff, raw_cmds) => {
     throw new Error('Table commit procedure is not ready for usage');
 }
 

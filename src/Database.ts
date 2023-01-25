@@ -7,6 +7,8 @@ import { Table, TableSchema } from "./Table";
 import { ArrayChecker } from "./Util";
 
 export class Database {
+    static loaded_dbs: Array<Database>;
+
     db_name: string;
     conceptual_tables: Array<Table>;
 
@@ -14,15 +16,32 @@ export class Database {
     concrete_tables: Array<Table>;
 
     db_config: DBConfig;
-    is_root: boolean; // Root databases don't save any configuration.
 
-    constructor (db_name: string, db_config: DBConfig, is_root?: boolean) {
+    private constructor (db_name: string, db_config: DBConfig) {
         this.db_name = db_name;
         this.db_config = db_config;
         this.conceptual_tables = new Array();
         this.concrete_tables = new Array();
         this.is_concrete = false;
-        this.is_root = is_root || false;
+    }
+
+    static getDatabase (db_name: string, db_config?: DBConfig) {
+        if (!Database.loaded_dbs) {
+            Database.loaded_dbs = [];
+        }
+
+        let db = Database.loaded_dbs.find(d => d.name() == db_name);
+        if (!db) {
+            if (!db_config)
+                throw new Error(`DBConfig not found for ${db_name}. Database might not have been intiated properly`);
+            db = new Database(db_name, db_config);
+        }
+
+        return db;
+    }
+
+    name () {
+        return this.db_name;
     }
 
     async init () {
@@ -56,6 +75,20 @@ export class Database {
             console.log('Error: ' + JSON.stringify(error, null, 2));
             throw new Error('Error connecting to DB');
         }
+    }
+
+    getConcreteTable(table_name: string): Table {
+        let table = this.concrete_tables.find(t => t.name() == table_name);
+        if (!table)
+            throw new Error(`Concrete table: ${table_name} not found`);
+        return table;
+    }
+
+    getConceptualTable(table_name: string): Table {
+        let table = this.conceptual_tables.find(t => t.name() == table_name);
+        if (!table)
+            throw new Error(`Conceptual table: ${table_name} not found`);
+        return table;
     }
 
     async getTableSchema (table_name : string): Promise<TableSchema> {
@@ -94,7 +127,7 @@ export class Database {
             getId: (table) => table.name(),
             isEqualTo: (left, right) => left.name() == right.name(),
             onFound: (left, right) => {
-                const schemaDiffer = new SchemaDiffer(left.schema(), right.schema());
+                const schemaDiffer = new SchemaDiffer(this.db_name, left.schema(), right.schema());
                 diff_arr.concat(schemaDiffer.diff());
             }
         });
@@ -104,6 +137,7 @@ export class Database {
                 diff_arr.push({
                     type: CommitType.TABLE,
                     action: CommitAction.REMOVE,
+                    db_name: this.db_name,
                     table_name: elem.name(),
                     old: {...elem.schema()}
                 });
@@ -115,6 +149,7 @@ export class Database {
                 diff_arr.push({
                     type: CommitType.TABLE,
                     action: CommitAction.ADD,
+                    db_name: this.db_name,
                     table_name: elem.name(),
                     new: {...elem.schema()}
                 });

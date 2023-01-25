@@ -1,6 +1,5 @@
-import { Knex } from "knex";
+import { Knex, knex } from "knex";
 import { TypeProcedure } from ".";
-import { ColumnSchema } from "../Table";
 
 function getProcedure (name, options, default_val): TypeProcedure {
 const obj = {
@@ -15,8 +14,13 @@ const obj = {
         return {name: 'datetime'}
     },
     knex_handle: {
-        create: (table: Knex.CreateTableBuilder, field: string) => {},
-        alter:  (table: Knex.AlterTableBuilder, field: string) => {}
+        //TODO: handle default datetime
+        create: (table: Knex.CreateTableBuilder, field: string): Knex.ColumnBuilder => {
+            return table.datetime(field);
+        },
+        alter:  (table: Knex.AlterTableBuilder, field: string): Knex.ColumnBuilder => {
+            return table.datetime(field);
+        }
     }
 }
 

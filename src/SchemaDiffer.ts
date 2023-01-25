@@ -5,6 +5,7 @@ import { ArrayChecker } from "./Util";
 export interface Diff {
     type: CommitType,
     action: CommitAction,
+    db_name: string,
     table_name: string,
     column_name?: string,
     old?: TableSchema | ColumnSchema | Array<string> | {table: string, column: string} | {property: string, value: any},
@@ -14,12 +15,15 @@ export interface Diff {
 export default class SchemaDiffer {
     // FIRST: Coceptual data
     // SECOND: Concrete data
+    private db_name: string;
+
     private first_table: TableSchema;
     private second_table: TableSchema;
 
     private diff_arr: Array<Diff>;
 
-    constructor (first_table: TableSchema, second_table: TableSchema) {
+    constructor (db_name: string, first_table: TableSchema, second_table: TableSchema) {
+        this.db_name = db_name;
         this.first_table = first_table;
         this.second_table = second_table;
     }
@@ -43,6 +47,7 @@ export default class SchemaDiffer {
                 this.diff_arr.push({
                     type: CommitType.COLUMN,
                     action: CommitAction.REMOVE,
+                    db_name: this.db_name,
                     table_name: this.first_table.name,
                     column_name: elem.name,
                     old: {...elem} as ColumnSchema
@@ -56,6 +61,7 @@ export default class SchemaDiffer {
                 this.diff_arr.push({
                     type: CommitType.COLUMN,
                     action: CommitAction.ADD,
+                    db_name: this.db_name,
                     table_name: this.first_table.name,
                     column_name: elem.name,
                     new: {...elem} as ColumnSchema
@@ -123,6 +129,7 @@ export default class SchemaDiffer {
                 this.diff_arr.push({
                     type: CommitType.PROPERTY,
                     action: CommitAction.UPDATE,
+                    db_name: this.db_name,
                     table_name: this.first_table.name,
                     column_name: first_col.name,
                     old: {
@@ -143,6 +150,7 @@ export default class SchemaDiffer {
                 this.diff_arr.push({
                     type: CommitType.CONSTRAINTS,
                     action: CommitAction.UPDATE,
+                    db_name: this.db_name,
                     table_name: this.first_table.name,
                     column_name: first_col.name,
                     old: obj.remove,
@@ -158,6 +166,7 @@ export default class SchemaDiffer {
                 this.diff_arr.push({
                     type: CommitType.FOREIGN,
                     action: CommitAction.UPDATE,
+                    db_name: this.db_name,
                     table_name: this.first_table.name,
                     column_name: first_col.name,
                     old: second_col['foreign'],
@@ -171,6 +180,7 @@ export default class SchemaDiffer {
                 this.diff_arr.push({
                     type: CommitType.PROPERTY,
                     action: CommitAction.UPDATE,
+                    db_name: this.db_name,
                     table_name: this.first_table.name,
                     column_name: first_col.name,
                     old: {
@@ -210,6 +220,7 @@ export default class SchemaDiffer {
             this.diff_arr.push({
                 type,
                 action: CommitAction.REMOVE,
+                db_name: this.db_name,
                 table_name: this.first_table.name,
                 column_name: first_col.name,
                 old: value
@@ -235,6 +246,7 @@ export default class SchemaDiffer {
             this.diff_arr.push({
                 type,
                 action: CommitAction.ADD,
+                db_name: this.db_name,
                 table_name: this.first_table.name,
                 column_name: first_col.name,
                 new: value

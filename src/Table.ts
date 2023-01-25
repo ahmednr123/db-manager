@@ -32,4 +32,9 @@ export class Table {
     _schema () {
         return this.table_schema;
     }
+
+    getColumnType (column_name: string): {name: string, options: any} {
+        let column = this.table_schema.columns.find(col => col.name == column_name);
+        return column.type;
+    }
 }

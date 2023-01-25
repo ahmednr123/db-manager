@@ -1,6 +1,5 @@
 import { Knex } from "knex";
 import { TypeProcedure } from ".";
-import { ColumnSchema } from "../Table";
 
 function getProcedure (name, options, default_val): TypeProcedure {
 const obj = {
@@ -15,8 +14,12 @@ const obj = {
         return {name: 'string'};
     },
     knex_handle: {
-        create: (table: Knex.CreateTableBuilder, field: string) => {},
-        alter:  (table: Knex.AlterTableBuilder, field: string) => {}
+        create: (table: Knex.CreateTableBuilder, field: string): Knex.ColumnBuilder => {
+            return table.string(field, options.limit);
+        },
+        alter:  (table: Knex.AlterTableBuilder, field: string): Knex.ColumnBuilder => {
+            return table.string(field, options.limit);
+        }
     }
 }
 
