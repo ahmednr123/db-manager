@@ -21,7 +21,7 @@ const knex = Knex({
         knex.destroy();
     }*/
 
-    try {
+    /*try {
         let out = await knex.raw(`SELECT A.CONSTRAINT_TYPE, A.CONSTRAINT_NAME, B.COLUMN_NAME, B.REFERENCED_TABLE_NAME, B.REFERENCED_COLUMN_NAME
             FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS A
             LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE B ON A.CONSTRAINT_NAME = B.CONSTRAINT_NAME
@@ -32,7 +32,13 @@ const knex = Knex({
     } catch (error) {
         console.log('Error: ' + JSON.stringify(error, null, 3));
         knex.destroy();
-    }
+    }*/
+    await knex.raw(`USE couch_gaming`);
+    await knex.schema.alterTable('Test', (table) => {
+        table.datetime('date_col');
+        table.float('float_col').alter();
+    });
+    knex.destroy();
 })();
 
 /*import { Database } from "./Database";

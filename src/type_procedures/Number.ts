@@ -9,9 +9,25 @@ const obj = {
 
     getString: () => `number`,
     getMySQLType: () => `integer`, //switch with options
-    matchMySQLDesc: (mysql_type: string) => false,
+    matchMySQLDesc: (mysql_type: string) => mysql_type.includes('int') || mysql_type.includes('float'),
     parseMySQLDesc: (mysql_schema: any) => {
-        return {name: 'number'};
+        let size = 'normal'
+        if (mysql_schema.type.includes('tinyint')) {
+            size = 'tiny';
+        } else if (mysql_schema.type.includes('smallint')) {
+            size = 'small'
+        } else if (mysql_schema.type.includes('mediumint')) {
+            size = 'medium';
+        } else if (mysql_schema.type.includes('bigint')) {
+            size = 'big'
+        }
+
+        // mysql float => 'float(8,2)'
+        // handle float precision
+        let type = mysql_schema.includes('float') ? 'float' : 'int';
+        let signed = !mysql_schema.type.includes('unsigned');
+
+        return {name: 'number', options: {size, type, signed}};
     },
     knex_handle: {
         create: (table: Knex.CreateTableBuilder, field: string): Knex.ColumnBuilder => {
@@ -30,7 +46,8 @@ const obj = {
                 case 'medium':
                     col_builder = table.mediumint(field);
                     break;
-                case 'big':
+                case 'big': //Javascript doesnt support big integer
+                            //So knex results the values in string format, avoid using this.
                     col_builder = table.bigint(field);
                     break;
                 default:
