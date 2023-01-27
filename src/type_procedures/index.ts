@@ -8,7 +8,7 @@ import DateTime from "./DateTime";
 export interface TypeProcedure {
     name: string,
     options: any,
-    default: string | number,
+    default: any,
 
     getString: () => string,
     getMySQLType: () => string,

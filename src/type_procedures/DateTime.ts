@@ -18,14 +18,17 @@ const obj = {
     getMySQLType: () => `datetime`,
 
     knex_handle: {
-        //TODO: handle default datetime, 
-        //for property update the value is of type 'any' which can hold datetime also as value
-        //so we can convert it before hand in table schema, probably while parsing or loading.
         create: (table: Knex.CreateTableBuilder, field: string): Knex.ColumnBuilder => {
-            return table.datetime(field);
+            let builder = table.datetime(field);
+            if (obj.default)
+                builder.defaultTo(obj.default); 
+            return builder;
         },
         alter:  (table: Knex.AlterTableBuilder, field: string): Knex.ColumnBuilder => {
-            return table.datetime(field);
+            let builder = table.datetime(field);
+            if (obj.default)
+                builder.defaultTo(obj.default); 
+            return builder;
         }
     }
 }

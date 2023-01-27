@@ -12,10 +12,16 @@ const obj = {
 
     knex_handle: {
         create: (table: Knex.CreateTableBuilder, field: string): Knex.ColumnBuilder => {
-            return table.string(field, options.limit);
+            let builder = table.string(field, options.limit)
+            if (obj.default)
+                builder.defaultTo(this.default);
+            return builder;
         },
         alter:  (table: Knex.AlterTableBuilder, field: string): Knex.ColumnBuilder => {
-            return table.string(field, options.limit);
+            let builder = table.string(field, options.limit)
+            if (obj.default)
+                builder.defaultTo(this.default);
+            return builder;
         }
     }
 }
