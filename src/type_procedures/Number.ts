@@ -14,8 +14,8 @@ const obj = {
             return 'float';
         if (sizes.includes(options.size)) {
             let size = options.size;
-            size.replace("normal", "");
-            return size+'int';
+            size = size.replace("normal", "");
+            return size+'int' + (options.unsigned ? ' unsigned' : '');
         }
 
         throw new Error(`Number doesnt support size: ${options.size}`);
