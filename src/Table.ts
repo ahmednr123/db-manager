@@ -26,11 +26,15 @@ export class SubTable {
     schema_handle: (parent_schema: TableSchema) => TableSchema;
 
     constructor (schema_handle: (parent_schema: TableSchema) => TableSchema) {
-        this.schema_handle = schema_handle
+        this.schema_handle = schema_handle;
     }
 
-    create (schema: TableSchema, knex_handle: Knex) {
-        CommitProcedure.commitTable(this.schema_handle(schema), knex_handle);
+    createIfNotExists (parent_schema: TableSchema, knex_handle: Knex) {
+        let schema = this.schema_handle(parent_schema);
+        schema.name = `$${parent_schema.name}_${schema.name}`;
+        if (!knex_handle.schema.hasTable(schema.name)) { 
+            CommitProcedure.commitTable(schema, knex_handle); 
+        }
     }
 }
 
@@ -43,10 +47,14 @@ export class Table {
         this.sub_tables = sub_tables;
     }
 
-    create (db_name: string, db_config: DBConfig) {
-        CommitProcedure.commitTable(this.table_schema, db_config.getDatabaseHandle(db_name));
+    createIfNotExists (db_name: string, db_config: DBConfig) {
+        let knex: Knex = db_config.getDatabaseHandle(db_name);
+        if (!knex.schema.hasTable(this.table_schema.name)) { 
+            CommitProcedure.commitTable(this.table_schema, knex);
+        }
+        
         for (let sub_table of this.sub_tables) {
-            sub_table.create(this.table_schema, db_config.getDatabaseHandle(db_name));
+            sub_table.createIfNotExists(this.table_schema, knex);
         }
     }
 }
