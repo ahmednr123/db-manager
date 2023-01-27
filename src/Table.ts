@@ -25,7 +25,7 @@ export interface TableSchema {
 export class SubTable {
     schema_handle: (parent_schema: TableSchema) => TableSchema;
 
-    constructor (schema_handle) {
+    constructor (schema_handle: (parent_schema: TableSchema) => TableSchema) {
         this.schema_handle = schema_handle
     }
 
