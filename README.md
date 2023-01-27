@@ -83,29 +83,29 @@ const type = {
 
 ### DBConfig
 Holds database configuration and provides a way to access knex database objects.
-- constructor({host, port, user, pass})
-- testConnection() throws error
+- <b>constructor({host, port, user, pass})</b>
+- <b>testConnection() throws error</b>
     - If connection fails throws error
-- getDatabaseHandle: Knex (db_name: string)
+- <b>getDatabaseHandle: Knex (db_name: string)</b>
     - Returns "Knex" object to interact with the database. Using "*" as the db_name will return "Knex" object without any database selected. 
-- destroy(db_name?: string)
+- <b>destroy(db_name?: string)</b>
     - Destroys all "Knex" objects if db_name is not provided else destroys that particular db_name object.
 
 ### SubTable
 
-- constructor(schema_handle: (parent_schema: TableSchema) => TableSchema)
-- createIfNotExists (parent_schema: TableSchema, knex_handle: Knex)
+- <b>constructor(schema_handle: (parent_schema: TableSchema) => TableSchema)</b>
+- <b>createIfNotExists (parent_schema: TableSchema, knex_handle: Knex)</b>
     - Creates a table using schema information of the parent table. It automatically changes the table name concating its parent's name as such: `$(parent table name)_(subtable name)`.
     - If table exists, nothing will happen.
 
 ### Table
 
-- constructor(table_schema: TableSchema, sub_tables: SubTable[])
-- createIfNotExists(db_name: string, db_config: DBConfig)
+- <b>constructor(table_schema: TableSchema, sub_tables: SubTable[])</b>
+- <b>createIfNotExists(db_name: string, db_config: DBConfig)</b>
     - Creates a table using its table schema. Creates all sub tables as well.
     - If table exists, it will proceed to create sub tables.
 
 
-#### NOTE
+## NOTE
 
 DB Manager is built on top of knex query builder. Any code solely written for db manager functionality will not and should not be used to run on production. At least not in this state where its highly unstable. The point of DB Manager is to provide internal functionality to the organization, it will only be used in development phase (when the table schema and all is not finalized) during maintanence to setup or upgrade the product.
