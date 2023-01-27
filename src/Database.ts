@@ -25,7 +25,7 @@ export class Database {
         this.is_concrete = false;
     }
 
-    static getDatabase (db_name: string, db_config?: DBConfig) {
+    static async getDatabase (db_name: string, db_config?: DBConfig) {
         if (!Database.loaded_dbs) {
             Database.loaded_dbs = [];
         }
@@ -35,6 +35,7 @@ export class Database {
             if (!db_config)
                 throw new Error(`DBConfig not found for ${db_name}. Database might not have been intiated properly`);
             db = new Database(db_name, db_config);
+            await db.init();
         }
 
         return db;
@@ -44,19 +45,22 @@ export class Database {
         return this.db_name;
     }
 
+    // ==================================================================
+    // Initialization methods ===========================================
+
     async init () {
-        this.is_concrete = await this.checkDB();
+        this.is_concrete = await this.exists();
         if (this.is_concrete) {
             let tables = await this.getAllTables();
             for (let table_name of tables) {
                 let table_schema = await this.getTableSchema(table_name);
-                let table: Table = new Table(table_schema);
+                let table: Table = new Table(this.db_config, this.db_name, table_schema);
                 this.concrete_tables.push(table);
             }
         }
     }
 
-    async checkDB () : Promise<boolean> {
+    async exists () : Promise<boolean> {
         try {
             let db_handle = this.db_config.getDatabaseHandle('*');
             let databases = parse(await db_handle.raw('SHOW DATABASES'), 'show');
@@ -77,20 +81,6 @@ export class Database {
         }
     }
 
-    getConcreteTable(table_name: string): Table {
-        let table = this.concrete_tables.find(t => t.name() == table_name);
-        if (!table)
-            throw new Error(`Concrete table: ${table_name} not found`);
-        return table;
-    }
-
-    getConceptualTable(table_name: string): Table {
-        let table = this.conceptual_tables.find(t => t.name() == table_name);
-        if (!table)
-            throw new Error(`Conceptual table: ${table_name} not found`);
-        return table;
-    }
-
     async getTableSchema (table_name : string): Promise<TableSchema> {
         try {
             let schema = {name: table_name, columns: []};
@@ -105,6 +95,23 @@ export class Database {
         }
     }
 
+    // =================================================================
+    // Member methods ==================================================
+
+    getConcreteTable(table_name: string): Table {
+        let table = this.concrete_tables.find(t => t.name() == table_name);
+        if (!table)
+            throw new Error(`Concrete table: ${table_name} not found`);
+        return table;
+    }
+
+    getConceptualTable(table_name: string): Table {
+        let table = this.conceptual_tables.find(t => t.name() == table_name);
+        if (!table)
+            throw new Error(`Conceptual table: ${table_name} not found`);
+        return table;
+    }
+
     defineTable (table_schema: TableSchema): Table {
         //TODO: have to handle how to defining the table a second time, for now throwing error
         let table_name = table_schema.name;
@@ -113,9 +120,13 @@ export class Database {
             throw new Error(`Table: "${table_schema.name}" is already defined`);
         }
 
-        table = new Table(table_schema);
+        table = new Table(this.db_config, this.db_name, table_schema);
         this.conceptual_tables.push(table);
         return table;
+    }
+
+    storeTable (table_schema: TableSchema): Table {
+
     }
 
     getDiff (): Array<Diff> {

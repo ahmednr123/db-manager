@@ -33,11 +33,26 @@ const knex = Knex({
         console.log('Error: ' + JSON.stringify(error, null, 3));
         knex.destroy();
     }*/
-    await knex.raw(`USE couch_gaming`);
-    await knex.schema.alterTable('Test', (table) => {
-        table.datetime('date_col');
-        table.float('float_col').alter();
-    });
+    async function getMany (conditions: Array<{fn: string, params: Array<any>}>, limit?, skipTo?): 
+        Promise<{data: Array<any>, skipped_to: number, total_records: number}> 
+    {
+        let result = {data: [], skipped_to: 0, total_records: 150};
+        
+        let handle = knex.select('CONSTRAINT_TYPE', 'CONSTRAINT_NAME').from('INFORMATION_SCHEMA.TABLE_CONSTRAINTS');
+        for (let condition of conditions) {
+            handle[condition.fn](...condition.params);
+        }
+        
+        result.data = (await handle);
+        console.log(JSON.stringify(result.data, null, 2));
+
+        return result;
+    }
+
+    await getMany([
+        {fn: "where", params: [{TABLE_SCHEMA: "couch_gaming", TABLE_NAME: "Test"}]}
+    ]);
+
     knex.destroy();
 })();
 
