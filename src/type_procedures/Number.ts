@@ -8,27 +8,16 @@ const obj = {
     default: default_val,
 
     getString: () => `number`,
-    getMySQLType: () => `integer`, //switch with options
-    matchMySQLDesc: (mysql_type: string) => mysql_type.includes('int') || mysql_type.includes('float'),
-    parseMySQLDesc: (mysql_schema: any) => {
-        let size = 'normal'
-        if (mysql_schema.type.includes('tinyint')) {
-            size = 'tiny';
-        } else if (mysql_schema.type.includes('smallint')) {
-            size = 'small'
-        } else if (mysql_schema.type.includes('mediumint')) {
-            size = 'medium';
-        } else if (mysql_schema.type.includes('bigint')) {
-            size = 'big'
-        }
+    getMySQLType: () => {
+        let sizes = ['tiny', 'small', 'medium', 'big', ''];
+        if (options.type == 'float')
+            return 'float';
+        if (sizes.includes(options.size))
+            return options.size+'int';
 
-        // mysql float => 'float(8,2)'
-        // handle float precision
-        let type = mysql_schema.includes('float') ? 'float' : 'int';
-        let signed = !mysql_schema.type.includes('unsigned');
-
-        return {name: 'number', options: {size, type, signed}};
+        throw new Error(`Number doesnt support size: ${options.size}`);
     },
+    
     knex_handle: {
         create: (table: Knex.CreateTableBuilder, field: string): Knex.ColumnBuilder => {
             let col_builder = null;
@@ -60,6 +49,7 @@ const obj = {
 
             return col_builder;
         },
+
         alter:  (table: Knex.AlterTableBuilder, field: string): Knex.ColumnBuilder => {
             let col_builder = null;
 

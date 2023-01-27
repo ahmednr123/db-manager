@@ -1,4 +1,4 @@
-import { Knex, knex } from "knex";
+import { Knex } from "knex";
 import { TypeProcedure } from ".";
 
 // datetime.options { date_enabled, time_enabled, format }
@@ -15,11 +15,8 @@ const obj = {
     default: default_val,
 
     getString: () => `datetime`,
-    getMySQLType: () => ``,
-    matchMySQLDesc: (mysql_type: string) => mysql_type.includes('datetime'),
-    parseMySQLDesc: (mysql_schema: any) => {
-        return {name: 'datetime'}
-    },
+    getMySQLType: () => `datetime`,
+
     knex_handle: {
         //TODO: handle default datetime, 
         //for property update the value is of type 'any' which can hold datetime also as value
