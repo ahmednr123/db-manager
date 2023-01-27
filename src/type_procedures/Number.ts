@@ -9,11 +9,14 @@ const obj = {
 
     getString: () => `number`,
     getMySQLType: () => {
-        let sizes = ['tiny', 'small', 'medium', 'big', ''];
+        let sizes = ['tiny', 'small', 'medium', 'big', 'normal'];
         if (options.type == 'float')
             return 'float';
-        if (sizes.includes(options.size))
-            return options.size+'int';
+        if (sizes.includes(options.size)) {
+            let size = options.size;
+            size.replace("normal", "");
+            return size+'int';
+        }
 
         throw new Error(`Number doesnt support size: ${options.size}`);
     },
@@ -44,7 +47,7 @@ const obj = {
                 }
             }
 
-            if (!options.signed)
+            if (options.unsigned)
                 col_builder.unsigned();
 
             return col_builder;
@@ -74,7 +77,7 @@ const obj = {
                 }
             }
 
-            if (!options.signed)
+            if (options.unsigned)
                 col_builder.unsigned();
 
             return col_builder;
