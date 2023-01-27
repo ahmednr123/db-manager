@@ -1,5 +1,4 @@
-import Knex, { knex } from "knex";
-import { TableSchema } from "./Table";
+import Knex from "knex";
 
 export class DBConfig {
     host: string;

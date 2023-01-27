@@ -1,6 +1,6 @@
 import { DBConfig } from "./DBConfig";
-import { Column } from "./Column";
-import {Knex} from "knex";
+import { Knex } from "knex";
+import CommitProcedure from "./CommitProcedure";
 
 export enum Constraints {
     UNIQUE_KEY = "unique_key",
@@ -22,52 +22,39 @@ export interface TableSchema {
     columns: Array<ColumnSchema>;
 }
 
+export class SubTable {
+    schema_handle: (parent_schema: TableSchema) => TableSchema;
+
+    constructor (schema_handle: (parent_schema: TableSchema) => TableSchema) {
+        this.schema_handle = schema_handle;
+    }
+
+    createIfNotExists (parent_schema: TableSchema, knex_handle: Knex) {
+        let schema = this.schema_handle(parent_schema);
+        schema.name = `$${parent_schema.name}_${schema.name}`;
+        if (!knex_handle.schema.hasTable(schema.name)) { 
+            CommitProcedure.commitTable(schema, knex_handle); 
+        }
+    }
+}
+
 export class Table {
-    db_name: string;
     table_schema: TableSchema;
-    db_config: DBConfig;
+    sub_tables: Array<SubTable>;
 
-    constructor (db_config: DBConfig, db_name: string, table_schema: TableSchema) {
-        this.db_name = db_name;
+    constructor (table_schema: TableSchema, sub_tables: Array<SubTable>) {
         this.table_schema = table_schema;
-        this.db_config = db_config;
+        this.sub_tables = sub_tables;
     }
 
-    name () {
-        return this.table_schema.name;
-    }
-
-    schema () {
-        return this.table_schema;
-    }
-
-    getColumnType (column_name: string): {name: string, options: any} {
-        let column = this.table_schema.columns.find(col => col.name == column_name);
-        return column.type;
-    }
-
-    insert (data) {
-
-    }
-
-    async getMany (conditions: Array<{fn: string, params: Array<any>}>, limit, skipTo): 
-        Promise<{data: Array<Column>, skipped_to: number, total_records: number}> 
-    {
-        let result = {data: [], skipped_to: 0, total_records: 0};
-        let db_handle: Knex = this.db_config.getDatabaseHandle(this.db_name);
-        
-        let handle = db_handle.select('*').from(this.db_name);
-        for (let condition of conditions) {
-            handle[condition.fn](...condition.params);
+    createIfNotExists (db_name: string, db_config: DBConfig) {
+        let knex: Knex = db_config.getDatabaseHandle(db_name);
+        if (!knex.schema.hasTable(this.table_schema.name)) { 
+            CommitProcedure.commitTable(this.table_schema, knex);
         }
         
-        result.data = (await handle);
-
-
-        return result;
-    }
-
-    getById (_id) {
-
+        for (let sub_table of this.sub_tables) {
+            sub_table.createIfNotExists(this.table_schema, knex);
+        }
     }
 }
