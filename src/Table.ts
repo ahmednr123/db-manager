@@ -30,13 +30,7 @@ export class SubTable {
     }
 
     public getName (): String {
-        return this.schema_handle(null).name;
-    }
-
-    private columnDefaultConverts (column: ColumnSchema, knex_handle: Knex) {
-        if (column.default == '_now_') {
-            column.default = knex_handle.fn.now();
-        }
+        return this.schema_handle({name: '', columns: []}).name;
     }
 
     public async createIfNotExists (parent_schema: TableSchema, knex_handle: Knex, columns?: ColumnSchema[]): Promise<TableSchema> {
@@ -46,7 +40,7 @@ export class SubTable {
             schema.columns = [...schema.columns, ...columns];
         
         for (let column of schema.columns)
-            this.columnDefaultConverts(column, knex_handle);
+            columnDefaultConverts(column, knex_handle);
         
             schema.name = `$${parent_schema.name}_${schema.name}`;
         if (!(await knex_handle.schema.hasTable(schema.name))) {
@@ -66,8 +60,8 @@ export class SubTable {
                 ]
             });
             await CommitProcedure.commitTable(schema, knex_handle);
-            return schema;
         }
+        return schema;
     }
 }
 
@@ -81,7 +75,7 @@ export class Table {
 
     public constructor (table_schema: TableSchema, sub_tables?: Array<SubTable>) {
         this.table_schema = table_schema;
-        this.sub_tables = sub_tables;
+        this.sub_tables = sub_tables || new Array();
         this.column_map = new Map();
     }
 
@@ -92,6 +86,12 @@ export class Table {
 
     public async createIfNotExists (db_name: string, db_config: DBConfig) {
         let knex: Knex = db_config.getDatabaseHandle(db_name);
+
+        for (let column of this.table_schema.columns)
+            columnDefaultConverts(column, knex);
+
+        Table.schemas.set(this.table_schema.name, this.table_schema);
+
         if (!(await knex.schema.hasTable(this.table_schema.name))) {
             // _id has to exist for every table, even for map tables
             addColumnIfNotExists(this.table_schema, {
@@ -109,7 +109,6 @@ export class Table {
                 ]
             });
             await CommitProcedure.commitTable(this.table_schema, knex);
-            Table.schemas.set(this.table_schema.name, this.table_schema);
         }
         
         if (this.sub_tables)
@@ -135,7 +134,13 @@ function addColumnIfNotExists (table_schema: TableSchema, column: ColumnSchema) 
         }
     }
 
-    if (exists) {
+    if (!exists) {
         table_schema.columns.push(column);
+    }
+}
+
+function columnDefaultConverts (column: ColumnSchema, knex_handle: Knex) {
+    if (column.default == '_now_') {
+        column.default = knex_handle.fn.now();
     }
 }
