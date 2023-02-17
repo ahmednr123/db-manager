@@ -1,5 +1,6 @@
 import { Knex } from "knex";
 
+import Binary from "./Binary";
 import String from "./String";
 import Number from "./Number";
 import Enum from "./Enum";
@@ -8,7 +9,6 @@ import DateTime from "./DateTime";
 export interface TypeProcedure {
     name: string,
     options: any,
-    default: any,
 
     getString: () => string,
     getMySQLType: () => string,
@@ -20,6 +20,7 @@ export interface TypeProcedure {
 }
 
 const TypeProcedures: Array<any> = [
+    Binary,
     String,
     Number,
     DateTime,
@@ -27,9 +28,9 @@ const TypeProcedures: Array<any> = [
 ]
 
 export default {
-    getTypeProcedure: (type_string: string, field: string, options: any, default_val?: any) => {
+    getTypeProcedure: (type_string: string, field: string, options: any) => {
         const procedure = TypeProcedures.find((procedure) => procedure.type == type_string);
-        return procedure.getProcedure(field, options, default_val);
+        return procedure.getProcedure(field, options);
     }
 }
 

@@ -8,27 +8,20 @@ import { TypeProcedure } from ".";
 // date_enalbed && time_enabled => datetime
 // TODO: Have to add the above functionality
 
-function getProcedure (name, options, default_val): TypeProcedure {
+function getProcedure (name, options): TypeProcedure {
 const obj = {
     name,
     options,
-    default: default_val,
 
     getString: () => `datetime`,
     getMySQLType: () => `datetime`,
 
     knex_handle: {
         create: (table: Knex.CreateTableBuilder, field: string): Knex.ColumnBuilder => {
-            let builder = table.datetime(field);
-            if (obj.default)
-                builder.defaultTo(obj.default); 
-            return builder;
+            return table.datetime(field);
         },
         alter:  (table: Knex.AlterTableBuilder, field: string): Knex.ColumnBuilder => {
-            let builder = table.datetime(field);
-            if (obj.default)
-                builder.defaultTo(obj.default); 
-            return builder;
+            return table.datetime(field);
         }
     }
 }

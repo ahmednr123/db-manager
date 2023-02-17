@@ -1,11 +1,10 @@
 import { Knex } from "knex";
 import { TypeProcedure } from ".";
 
-function getProcedure (name, options, default_val): TypeProcedure {
+function getProcedure (name, options): TypeProcedure {
 const obj = {
     name,
     options,
-    default: default_val,
 
     getString: () => `number`,
     getMySQLType: () => {

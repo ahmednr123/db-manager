@@ -1,6 +1,7 @@
 import { DBConfig } from "./DBConfig";
 import { Knex } from "knex";
 import CommitProcedure from "./CommitProcedure";
+import Util from "./Util";
 
 export enum Constraints {
     UNIQUE_KEY = "unique_key",
@@ -39,26 +40,12 @@ export class SubTable {
         if (columns)
             schema.columns = [...schema.columns, ...columns];
         
-        for (let column of schema.columns)
-            columnDefaultConverts(column, knex_handle);
-        
-            schema.name = `$${parent_schema.name}_${schema.name}`;
+        schema.name = `$${parent_schema.name}_${schema.name}`;
+
+        // _id has to exist for every table, even for map tables
+        addColumnIfNotExists(schema, Util.getIDColumnSchema());
+
         if (!(await knex_handle.schema.hasTable(schema.name))) {
-            // _id has to exist for every table, even for map tables
-            addColumnIfNotExists(schema, {
-                name: "_id",
-                type: {
-                    name: "number",
-                    options: {
-                        size: "normal",
-                        unsigned: true
-                    }
-                },
-                constraints: [
-                    Constraints.PRIMARY_KEY,
-                    Constraints.AUTO_INCREMENT
-                ]
-            });
             await CommitProcedure.commitTable(schema, knex_handle);
         }
         return schema;
@@ -87,27 +74,12 @@ export class Table {
     public async createIfNotExists (db_name: string, db_config: DBConfig) {
         let knex: Knex = db_config.getDatabaseHandle(db_name);
 
-        for (let column of this.table_schema.columns)
-            columnDefaultConverts(column, knex);
+        // _id has to exist for every table, even for map tables
+        addColumnIfNotExists(this.table_schema,  Util.getIDColumnSchema());
 
         Table.schemas.set(this.table_schema.name, this.table_schema);
 
         if (!(await knex.schema.hasTable(this.table_schema.name))) {
-            // _id has to exist for every table, even for map tables
-            addColumnIfNotExists(this.table_schema, {
-                name: "_id",
-                type: {
-                    name: "number",
-                    options: {
-                        size: "normal",
-                        unsigned: true
-                    }
-                },
-                constraints: [
-                    Constraints.PRIMARY_KEY,
-                    Constraints.AUTO_INCREMENT
-                ]
-            });
             await CommitProcedure.commitTable(this.table_schema, knex);
         }
         
@@ -136,11 +108,5 @@ function addColumnIfNotExists (table_schema: TableSchema, column: ColumnSchema) 
 
     if (!exists) {
         table_schema.columns.push(column);
-    }
-}
-
-function columnDefaultConverts (column: ColumnSchema, knex_handle: Knex) {
-    if (column.default == '_now_') {
-        column.default = knex_handle.fn.now();
     }
 }

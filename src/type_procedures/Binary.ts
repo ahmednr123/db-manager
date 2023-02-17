@@ -6,15 +6,15 @@ const obj = {
     name,
     options,
 
-    getString: () => `string`,
-    getMySQLType: () => `varchar(${options.limit})`,
+    getString: () => `binary`,
+    getMySQLType: () => `varbinary(${options.limit})`,
 
     knex_handle: {
         create: (table: Knex.CreateTableBuilder, field: string): Knex.ColumnBuilder => {
-            return table.string(field, options.limit);
+            return table.binary(field, options.limit);
         },
         alter:  (table: Knex.AlterTableBuilder, field: string): Knex.ColumnBuilder => {
-            return table.string(field, options.limit);
+            return table.binary(field, options.limit);
         }
     }
 }
@@ -22,4 +22,4 @@ const obj = {
 return obj;
 }
 
-export default {type: 'string', getProcedure};
+export default {type: 'binary', getProcedure};

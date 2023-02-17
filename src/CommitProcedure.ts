@@ -8,7 +8,7 @@ export default {
         
         await knex_handle.schema.createTable(table_schema.name, (table) => {
             for (let col of table_schema.columns) {
-                let type_procedure: TypeProcedure = TypeProcedureSupport.getTypeProcedure(col.type.name, col.name, col.type.options, col.default);
+                let type_procedure: TypeProcedure = TypeProcedureSupport.getTypeProcedure(col.type.name, col.name, col.type.options);
                 let col_builder = type_procedure.knex_handle.create(table, col.name);
 
                 // constraints
@@ -32,6 +32,16 @@ export default {
                         });
                         break;
                     }
+                }
+
+                // default
+                if (col.default) {
+                    if (col.default == '_now_') 
+                        col_builder.defaultTo(knex_handle.fn.now());
+                    else if (col.default == '_uuid_binary_')
+                        col_builder.defaultTo(knex_handle.raw('(UUID_TO_BIN(UUID()))'));
+                    else
+                        col_builder.defaultTo(col.default);
                 }
 
                 // foreign
