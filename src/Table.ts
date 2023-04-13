@@ -1,4 +1,4 @@
-import { DBConfig } from "./DBConfig";
+import DBConfig from "./DBConfig";
 import { Knex } from "knex";
 import CommitProcedure from "./CommitProcedure";
 import Util from "./Util";
@@ -52,7 +52,7 @@ export class SubTable {
     }
 }
 
-export class Table {
+export default class Table {
     private static schemas: Map<String, TableSchema> = new Map();
 
     private table_schema: TableSchema;

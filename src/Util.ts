@@ -1,3 +1,4 @@
+import { Knex } from "knex";
 import { ColumnSchema, Constraints, TableSchema } from "./Table";
 
 const id_col_name = '_id';
@@ -24,6 +25,14 @@ function getIDColumnSchemaDefault (field_name, is_primary): ColumnSchema {
 }
 
 export default {
+    knexBinaryToUUID: (knex: Knex, column: string) => {
+        return knex.raw(`BIN_TO_UUID(??) as ${column}`, [column]);
+    },
+
+    knexUUIDToBinary: (knex: Knex, uuid: string) => {
+        return knex.raw(`UUID_TO_BIN('${uuid}')`);
+    },
+
     getIDColumnSchema: (): ColumnSchema => {
         return getIDColumnSchemaDefault(id_col_name, true);
     },

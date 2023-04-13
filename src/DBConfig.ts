@@ -1,6 +1,6 @@
 import Knex from "knex";
 
-export class DBConfig {
+export default class DBConfig {
     host: string;
     port: number;
     user: string;
