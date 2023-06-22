@@ -7,31 +7,30 @@ import Enum from "./Enum";
 import DateTime from "./DateTime";
 
 export interface TypeProcedure {
-    name: string,
-    options: any,
+  name: string;
+  options: any;
 
-    getString: () => string,
-    getMySQLType: () => string,
+  getString: () => string;
+  getMySQLType: () => string;
 
-    knex_handle: {
-        create: (table: Knex.CreateTableBuilder, field: string) => Knex.ColumnBuilder,
-        alter:  (table: Knex.AlterTableBuilder,  field: string) => Knex.ColumnBuilder
-    }
+  knex_handle: {
+    create: (
+      table: Knex.CreateTableBuilder,
+      field: string
+    ) => Knex.ColumnBuilder;
+    alter: (table: Knex.AlterTableBuilder, field: string) => Knex.ColumnBuilder;
+  };
 }
 
-const TypeProcedures: Array<any> = [
-    Binary,
-    String,
-    Number,
-    DateTime,
-    Enum
-]
+const TypeProcedures: Array<any> = [Binary, String, Number, DateTime, Enum];
 
 export default {
-    getTypeProcedure: (type_string: string, field: string, options: any) => {
-        const procedure = TypeProcedures.find((procedure) => procedure.type == type_string);
-        return procedure.getProcedure(field, options);
-    }
-}
+  getTypeProcedure: (type_string: string, field: string, options: any) => {
+    const procedure = TypeProcedures.find(
+      (procedure) => procedure.type == type_string
+    );
+    return procedure.getProcedure(field, options);
+  },
+};
 
 //What to do with options?

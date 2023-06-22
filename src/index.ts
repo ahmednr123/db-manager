@@ -1,10 +1,10 @@
 import commitProcedure from "./CommitProcedure";
-import dbConfig from "./DBConfig";
-import table, { 
-    SubTable as subTable, 
-    Constraints as constraints, 
-    TableSchema as tableSchema, 
-    ColumnSchema as columnSchema
+export { DBConfig } from "./DBConfig";
+import table, {
+  SubTable as subTable,
+  Constraints as constraints,
+  TableSchema as tableSchema,
+  ColumnSchema as columnSchema,
 } from "./Table";
 import util from "./Util";
 
@@ -16,20 +16,20 @@ import DateTime from "./type_procedures/DateTime";
 import typeProcedure from "./type_procedures";
 
 export const CommitProcedure = commitProcedure;
-export const DBConfig = dbConfig;
+//export class DBConfig extends dbConfig {};
 export const Table = table;
-    export const SubTable = subTable;
-    export const Constraints = constraints;
-    export interface TableSchema extends tableSchema{};
-    export interface ColumnSchema extends columnSchema{};
+export const SubTable = subTable;
+export const Constraints = constraints;
+export interface TableSchema extends tableSchema {}
+export interface ColumnSchema extends columnSchema {}
 export const Util = util;
 
 export const Type = {
-    Binary,
-    String,
-    Number,
-    Enum,
-    DateTime
-}
+  Binary,
+  String,
+  Number,
+  Enum,
+  DateTime,
+};
 
 export const TypeProcedure = typeProcedure;

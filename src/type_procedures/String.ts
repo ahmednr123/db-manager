@@ -1,8 +1,8 @@
 import { Knex } from "knex";
 import { TypeProcedure } from ".";
 
-function getProcedure (name, options): TypeProcedure {
-const obj = {
+function getProcedure(name: string, options: any): TypeProcedure {
+  const obj = {
     name,
     options,
 
@@ -10,16 +10,22 @@ const obj = {
     getMySQLType: () => `varchar(${options.limit})`,
 
     knex_handle: {
-        create: (table: Knex.CreateTableBuilder, field: string): Knex.ColumnBuilder => {
-            return table.string(field, options.limit);
-        },
-        alter:  (table: Knex.AlterTableBuilder, field: string): Knex.ColumnBuilder => {
-            return table.string(field, options.limit);
-        }
-    }
+      create: (
+        table: Knex.CreateTableBuilder,
+        field: string
+      ): Knex.ColumnBuilder => {
+        return table.string(field, options.limit);
+      },
+      alter: (
+        table: Knex.AlterTableBuilder,
+        field: string
+      ): Knex.ColumnBuilder => {
+        return table.string(field, options.limit);
+      },
+    },
+  };
+
+  return obj;
 }
 
-return obj;
-}
-
-export default {type: 'string', getProcedure};
+export default { type: "string", getProcedure };
