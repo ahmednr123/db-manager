@@ -47,7 +47,10 @@ export class DBConfig {
     }
   }
 
-  getDatabaseHandle(db_name: string, ssl?: boolean) {
+  getDatabaseHandle(db_name: string, 
+    {ssl = false, pool} 
+    : {ssl?:boolean, pool?: {min:number, max:number}}
+  ) {
     let dbHandle = this.handles.get(db_name);
     if (!dbHandle) {
       let connection: any = {
@@ -58,6 +61,7 @@ export class DBConfig {
       };
 
       if (ssl && ssl === true) connection.ssl = { rejectUnauthorized: true };
+      if (pool) connection.pool = pool;
 
       if (db_name != "*") connection.database = db_name;
 
