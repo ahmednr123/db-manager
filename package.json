@@ -1,5 +1,5 @@
 {
-  "name": "db-manager",
+  "name": "@ahmed.noor/db-manager",
   "repository": {
     "type": "git",
     "url": "https://github.com/ahmednr123/db-manager.git"
