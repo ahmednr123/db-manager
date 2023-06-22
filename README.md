@@ -108,4 +108,6 @@ Holds database configuration and provides a way to access knex database objects.
 
 ## NOTE
 
+*Foreign keys are disabled for cloud scalability.
+
 DB Manager is built on top of knex query builder. Any code solely written for db manager functionality will not and should not be used to run on production. At least not in this state where its highly unstable. The point of DB Manager is to provide internal functionality to the organization, it will only be used in development phase (when the table schema and all is not finalized) during maintanence to setup or upgrade the product.
