@@ -1,6 +1,6 @@
 # DB Manager
 
-Library to manage databases for any couch application.
+Library to manage databases for my applications.
 Documentation can be found in notion.
 
 ## Functionality

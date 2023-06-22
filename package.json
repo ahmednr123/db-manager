@@ -1,11 +1,11 @@
 {
-  "name": "data-manager",
+  "name": "db-manager",
   "repository": {
     "type": "git",
-    "url": "https://github.com/couch-gaming/db-manager.git"
+    "url": "https://github.com/ahmednr123/db-manager.git"
   },
   "version": "0.0.1",
-  "description": "Library to manage databases for any couch application.",
+  "description": "Library to manage databases for my applications.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "files": [
