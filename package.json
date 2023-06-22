@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/ahmednr123/db-manager.git"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Library to manage databases for my applications.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
